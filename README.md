@@ -4,7 +4,7 @@ A developer tool that answers one question: **is this retry configuration safe t
 
 Each team's retry policy looks reasonable on its own. The danger is in how policies compose across a dependency chain. Retry Check takes one service's retry config, places it in its chain, and returns a pass/fail verdict with reasons and fixes.
 
-See [docs/SPEC.md](docs/SPEC.md) for the model, the checks and the expected results.
+See [docs/SPEC.md](docs/SPEC.md) for the model, the checks and the expected results, and [docs/RATIONALE.md](docs/RATIONALE.md) for the design rationale.
 
 Live at https://retry-check.vercel.app/
 

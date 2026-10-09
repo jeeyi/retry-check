@@ -6,9 +6,11 @@ Each team's retry policy looks reasonable on its own. The danger is in how polic
 
 See [docs/SPEC.md](docs/SPEC.md) for the model, the checks and the expected results.
 
+Live at https://retry-check.vercel.app/
+
 ## Status
 
-Slice 1: the analysis engine, one demo scenario, and a page with the verdict, the editable retry config and the list of checks. The failure explanations, fixes and request path graph are not built yet.
+Built so far: the analysis engine, one demo scenario, and a page with the verdict, the editable retry config, and a card explaining each kind of failure with its fix. The request path graph and the safe-state view are not built yet.
 
 ## Develop
 

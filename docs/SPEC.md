@@ -113,12 +113,12 @@ Dependencies and leaves:
 Principle: the verdict leads, the graph is the map, and detail appears only for what fails.
 
 1. **Header.** Tool name, the service being assessed, and a demo scenario picker.
-2. **Verdict banner.** Pass or fail, the check count, and a one-sentence summary.
+2. **Verdict banner.** Pass or fail and the check count. When failing, one button applies every fix; there are no per-card buttons. One fix can expose another problem (a longer per-attempt timeout can overrun a client deadline), so the button repeats until the config is safe.
 3. **Request path graph.** Four columns: clients, your service, dependencies (read-only), leaf services. Each node shows two or three numbers. Everything is muted except your service (dark) and failing nodes and the paths to them (orange). Each leaf has a load bar with a capacity tick.
-4. **Why it fails.** One card per fix, not per failing check. Each card has a one-sentence title with the numbers in it, a visual, a short explanation, and a recommendation with an apply button.
+4. **Why it fails.** One card per fix, not per failing check, so at most three. Each card has a one-sentence title with the numbers in it, a visual, a short explanation, and the recommended fix. A card features the check furthest over its limit and names the others.
    - Deadline and edge failures use the same timeline: attempts as segments, a marker where the caller gives up, and the work after the marker in orange.
    - Capacity failures show the multiplication chain (550 × 3 × 3 = 4,950) and a bar against capacity.
-   - With more than two cards: stack them, rank by severity, expand one at a time.
+   - All cards are shown at once, in the order deadline, edge, capacity. To be revisited when the whole UI is reviewed.
 5. **Config panel.** The five editable fields. Fields that cause a failure are flagged with the problem they cause. Any edit recomputes the verdict immediately. No field accepts typed input, so no value can be invalid and there are no error states:
 
    | Field | Control | Range | Step |
@@ -134,11 +134,13 @@ Principle: the verdict leads, the graph is the map, and detail appears only for 
 
 Recommendations:
 
-| Failure | Fix |
-|---|---|
-| Deadline | Set an overall timeout below the shortest client deadline |
-| Capacity | Add a retry budget |
-| Edge | Raise the per-attempt timeout to at least the slowest dependency's worst case |
+| Failure | Fix | In the demo |
+|---|---|---|
+| Deadline | Set the overall timeout to 90% of the shortest client deadline, rounded down to its 100 ms step | 900 ms |
+| Capacity | Set the retry budget to 10% | 1,815 RPS on Inventory DB |
+| Edge | Raise whichever timeout is below the slowest dependency's worst case, rounded up to its step. If both are, raise both | Per-attempt 750 ms, overall 800 ms |
+
+Every fix value is one the controls can produce. A test checks, for every config the controls can produce, that each fix clears its own checks and that applying all fixes ends in a safe config.
 
 Visual reference: mockup screens exported into `docs/mockups/` (failing state and safe state).
 
@@ -146,7 +148,7 @@ Visual reference: mockup screens exported into `docs/mockups/` (failing state an
 
 - Show the safe range on the fields themselves: a floor on per-attempt timeout (slowest dependency, 750 ms) and a ceiling on overall timeout (shortest client deadline, 1.0 s).
 - Two more demo scenarios, "Deep chain" and "Shared database". Neither is designed yet.
-- List passing checks on the failing screen so the check count can be inspected.
+- List passing checks on the failing screen so the check count can be inspected. Built as a table in slice 1 and currently not rendered; to be decided when the whole UI is reviewed.
 
 ## Out of scope
 

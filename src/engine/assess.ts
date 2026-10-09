@@ -9,18 +9,27 @@ export function rawWorstMs(policy: RetryPolicy): number {
   return policy.attempts * policy.perAttemptTimeoutMs + backoffMs
 }
 
+/**
+ * How many calls the service makes per client request in the worst case, in
+ * percent so load stays in integer arithmetic: a 10% budget is 110, not 1.1.
+ */
+export function retryMultiplierPct(config: Config): number {
+  return config.retryBudgetPct === null
+    ? config.attempts * 100
+    : Math.min(config.attempts * 100, 100 + config.retryBudgetPct)
+}
+
+export function totalClientRps(scenario: Scenario): number {
+  return scenario.clients.reduce((sum, client) => sum + client.rps, 0)
+}
+
 export function assess(scenario: Scenario, config: Config): Assessment {
   const overallMs = config.overallTimeoutMs ?? Infinity
   const serviceWorstMs = Math.min(rawWorstMs(config), overallMs)
   // An overall timeout below the per-attempt timeout cuts each attempt short.
   const attemptLimitMs = Math.min(config.perAttemptTimeoutMs, overallMs)
-
-  // Kept in percent so load stays in integer arithmetic: a 10% budget is 110, not 1.1.
-  const multiplierPct =
-    config.retryBudgetPct === null
-      ? config.attempts * 100
-      : Math.min(config.attempts * 100, 100 + config.retryBudgetPct)
-  const clientRps = scenario.clients.reduce((sum, client) => sum + client.rps, 0)
+  const multiplierPct = retryMultiplierPct(config)
+  const clientRps = totalClientRps(scenario)
 
   const checks: Check[] = [
     ...scenario.clients.map((client) => check('deadline', client.name, serviceWorstMs, client.deadlineMs)),

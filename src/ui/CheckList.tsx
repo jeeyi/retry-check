@@ -1,6 +1,8 @@
 import type { Check } from '../engine/types'
 import { formatMs, formatRps } from '../format'
 
+// Not rendered at the moment. Kept until the whole UI is reviewed after the
+// request path graph is built; it may come back.
 export function CheckList({ checks }: { checks: Check[] }) {
   return (
     <section className="panel">

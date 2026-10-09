@@ -1,0 +1,11 @@
+# Assignment brief (not part of the project)
+Software_Engineering_Take-Home_Assignment_for_Platform.pdf
+
+# Dependencies and build output
+node_modules/
+dist/
+
+# Local and tooling
+.vercel/
+.DS_Store
+*.local

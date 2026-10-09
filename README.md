@@ -8,7 +8,7 @@ See [docs/SPEC.md](docs/SPEC.md) for the model, the checks and the expected resu
 
 ## Status
 
-Project scaffold only. No application code yet.
+Slice 1: the analysis engine, one demo scenario, and a page with the verdict, the editable retry config and the list of checks. The failure explanations, fixes and request path graph are not built yet.
 
 ## Develop
 

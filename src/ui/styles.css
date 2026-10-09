@@ -1,0 +1,218 @@
+/* Colours from docs/mockups. */
+:root {
+  --bg: #f4f5f7;
+  --surface: #ffffff;
+  --text: #151a22;
+  --muted: #586170;
+  --border: #dfe2e7;
+  --border-strong: #c9ced6;
+  --fail: #b5330d;
+  --fail-text: #8f270a;
+  --fail-bg: #fceee8;
+  --pass: #0b6b62;
+  --pass-text: #084f49;
+  --mono: ui-monospace, Menlo, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.45 system-ui, 'Segoe UI', sans-serif;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+h2 {
+  font-size: 16px;
+}
+
+code,
+output,
+td {
+  font-family: var(--mono);
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 32px;
+  padding: 14px 32px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.top strong {
+  font-size: 17px;
+}
+
+.top code {
+  color: var(--text);
+}
+
+.top .scenario {
+  margin-left: auto;
+}
+
+main {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px 32px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.verdict {
+  padding: 20px 24px;
+  border-radius: 12px;
+  color: #ffffff;
+}
+
+.verdict.fail {
+  background: var(--fail);
+}
+
+.verdict.pass {
+  background: var(--pass);
+}
+
+.verdict h1 {
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.columns {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.panel {
+  flex: 999 1 480px;
+  min-width: 0;
+  padding: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.panel.config {
+  flex: 1 1 320px;
+  gap: 20px;
+}
+
+.checks {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.checks th,
+.checks td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.checks thead th {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.checks tbody th {
+  font-weight: 400;
+}
+
+.checks .result {
+  font-weight: 600;
+}
+
+.checks .pass .result {
+  color: var(--pass-text);
+}
+
+.checks .fail {
+  background: var(--fail-bg);
+  color: var(--fail-text);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+input[type='range'] {
+  width: 100%;
+  margin: 0;
+  accent-color: var(--text);
+}
+
+.switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.switch input {
+  accent-color: var(--text);
+}
+
+.segmented {
+  display: flex;
+  gap: 6px;
+}
+
+.segmented button {
+  flex: 1;
+  min-height: 40px;
+  font: inherit;
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.segmented button[aria-pressed='true'] {
+  color: #ffffff;
+  background: var(--text);
+  border-color: var(--text);
+}

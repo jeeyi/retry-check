@@ -28,7 +28,7 @@ Assumptions:
 
 - The service calls its dependencies in parallel.
 - Every client request reaches every dependency.
-- Backoff doubles from a base value (100 ms base, 3 attempts: 100 + 200 = 300 ms).
+- Backoff doubles from a base value (100 ms base, 3 attempts: 100 + 200 = 300 ms). The multiplier is fixed at 2; only the base is editable.
 - All numbers are worst case: every call fails and every retry is used.
 
 ## Calculations
@@ -53,7 +53,7 @@ Assumptions:
 A config is safe only if every check passes.
 
 1. **Deadline, one per client.** `worst(service) <= client.deadline`. On failure the client gives up while the service and everything below it keep working.
-2. **Edge, one per dependency.** `worst(dependency) <= service.per_attempt_timeout`. Same failure one level down: the service gives up on a dependency that is still retrying.
+2. **Edge, one per dependency.** `worst(dependency) <= min(service.per_attempt_timeout, service.overall_timeout)`. Same failure one level down: the service gives up on a dependency that is still retrying. An overall timeout below the per-attempt timeout is a valid config, and it is the overall timeout that then cuts each attempt short.
 3. **Capacity, one per leaf.** `load(leaf) <= leaf.capacity`.
 
 The verdict reads "Not safe to deploy. N of M checks fail." or "Safe to deploy."
@@ -102,6 +102,12 @@ Dependencies and leaves:
 - inventory-svc edge: 750 ms against 400 ms, 350 ms orphaned.
 - pricing-svc edge: 650 ms against 400 ms, 250 ms orphaned.
 
+**D. Overall timeout 500 ms (below the 800 ms per-attempt timeout) and retry budget 10%: 2 of 7 fail**
+
+- Service worst case is 0.5 s, so every deadline passes.
+- inventory-svc edge: 750 ms against 500 ms.
+- pricing-svc edge: 650 ms against 500 ms.
+
 ## UI
 
 Principle: the verdict leads, the graph is the map, and detail appears only for what fails.
@@ -113,7 +119,17 @@ Principle: the verdict leads, the graph is the map, and detail appears only for 
    - Deadline and edge failures use the same timeline: attempts as segments, a marker where the caller gives up, and the work after the marker in orange.
    - Capacity failures show the multiplication chain (550 × 3 × 3 = 4,950) and a bar against capacity.
    - With more than two cards: stack them, rank by severity, expand one at a time.
-5. **Config panel.** The five editable fields. Fields that cause a failure are flagged with the problem they cause. Any edit recomputes the verdict immediately.
+5. **Config panel.** The five editable fields. Fields that cause a failure are flagged with the problem they cause. Any edit recomputes the verdict immediately. No field accepts typed input, so no value can be invalid and there are no error states:
+
+   | Field | Control | Range | Step |
+   |---|---|---|---|
+   | Attempts | Segmented buttons | 1 to 5 | |
+   | Per-attempt timeout | Slider | 100 to 2,000 ms | 50 ms |
+   | Backoff base | Slider | 0 to 500 ms | 50 ms |
+   | Overall timeout | Switch, plus slider when on | 100 to 5,000 ms | 100 ms |
+   | Retry budget | Segmented buttons | None, 5%, 10%, 20%, 50% | |
+
+   Switching the overall timeout on starts it at the current worst case, so the switch alone changes nothing (unless the worst case is above the 5,000 ms maximum, where it starts at the maximum). Fields are not validated against each other; judging a plausible but bad combination is the tool's job. When the overall timeout is below the per-attempt timeout, the panel says that attempts are capped by it.
 6. **Safe state.** The cards become tables of passing checks, including headroom per leaf.
 
 Recommendations:
@@ -144,3 +160,4 @@ Visual reference: mockup screens exported into `docs/mockups/` (failing state an
 
 - Worst-case analysis is pessimistic: it assumes every call fails.
 - Capacity is a single number per leaf, with no model of how a leaf degrades under load.
+- Duration and load use different worst cases. Duration assumes every attempt runs to its timeout; load assumes every attempt is used. With a short overall timeout both cannot happen at once, but each is a valid upper bound.

@@ -9,6 +9,11 @@ export function rawWorstMs(policy: RetryPolicy): number {
   return policy.attempts * policy.perAttemptTimeoutMs + backoffMs
 }
 
+/** Worst-case duration of the service under assessment: its retries, cut off by any overall timeout. */
+export function serviceWorstMs(config: Config): number {
+  return Math.min(rawWorstMs(config), config.overallTimeoutMs ?? Infinity)
+}
+
 /**
  * How many calls the service makes per client request in the worst case, in
  * percent so load stays in integer arithmetic: a 10% budget is 110, not 1.1.
@@ -24,15 +29,14 @@ export function totalClientRps(scenario: Scenario): number {
 }
 
 export function assess(scenario: Scenario, config: Config): Assessment {
-  const overallMs = config.overallTimeoutMs ?? Infinity
-  const serviceWorstMs = Math.min(rawWorstMs(config), overallMs)
+  const worstMs = serviceWorstMs(config)
   // An overall timeout below the per-attempt timeout cuts each attempt short.
-  const attemptLimitMs = Math.min(config.perAttemptTimeoutMs, overallMs)
+  const attemptLimitMs = Math.min(config.perAttemptTimeoutMs, config.overallTimeoutMs ?? Infinity)
   const multiplierPct = retryMultiplierPct(config)
   const clientRps = totalClientRps(scenario)
 
   const checks: Check[] = [
-    ...scenario.clients.map((client) => check('deadline', client.name, serviceWorstMs, client.deadlineMs)),
+    ...scenario.clients.map((client) => check('deadline', client.name, worstMs, client.deadlineMs)),
     ...scenario.dependencies.map((dep) => check('edge', dep.name, rawWorstMs(dep), attemptLimitMs)),
     ...scenario.leaves.map((leaf) => {
       const callerAttempts = scenario.dependencies

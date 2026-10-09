@@ -4,6 +4,7 @@ import { applyFixes, proposeFixes } from '../engine/fixes'
 import { looksReasonable as scenario } from '../scenarios/looksReasonable'
 import { ConfigPanel } from './ConfigPanel'
 import { PassingChecks } from './PassingChecks'
+import { RequestPath } from './RequestPath'
 import { VerdictBanner } from './VerdictBanner'
 import { WhyItFails } from './WhyItFails'
 
@@ -29,6 +30,7 @@ export function App() {
         />
         <div className="columns">
           <div className="main-column">
+            <RequestPath scenario={scenario} config={config} assessment={assessment} />
             {assessment.safe ? (
               <PassingChecks scenario={scenario} checks={assessment.checks} />
             ) : (

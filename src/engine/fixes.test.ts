@@ -12,42 +12,42 @@ import {
 import { applyFixes, proposeFixes } from './fixes'
 import type { Config } from './types'
 
-const deployed = scenario.deployed
+const proposed = scenario.proposed
 
 describe('fixes for the spec cases', () => {
-  it('A. as deployed: an overall timeout and a retry budget, which give case B', () => {
-    expect(proposeFixes(scenario, deployed)).toEqual([
+  it('A. as proposed: an overall timeout and a retry budget, which give case B', () => {
+    expect(proposeFixes(scenario, proposed)).toEqual([
       { kind: 'deadline', patch: { overallTimeoutMs: 900 } },
       { kind: 'capacity', patch: { retryBudgetPct: 10 } },
     ])
-    expect(applyFixes(scenario, deployed)).toEqual({ ...deployed, overallTimeoutMs: 900, retryBudgetPct: 10 })
+    expect(applyFixes(scenario, proposed)).toEqual({ ...proposed, overallTimeoutMs: 900, retryBudgetPct: 10 })
   })
 
   it('B. safe: nothing to fix', () => {
-    const config = { ...deployed, overallTimeoutMs: 900, retryBudgetPct: 10 }
+    const config = { ...proposed, overallTimeoutMs: 900, retryBudgetPct: 10 }
     expect(proposeFixes(scenario, config)).toEqual([])
     expect(applyFixes(scenario, config)).toBe(config)
   })
 
   it('C. per-attempt timeout too low: raise it to the slowest dependency', () => {
-    const config = { ...deployed, overallTimeoutMs: 900, retryBudgetPct: 10, perAttemptTimeoutMs: 400 }
+    const config = { ...proposed, overallTimeoutMs: 900, retryBudgetPct: 10, perAttemptTimeoutMs: 400 }
     expect(proposeFixes(scenario, config)).toEqual([{ kind: 'edge', patch: { perAttemptTimeoutMs: 750 } }])
   })
 
   it('D. overall timeout too low: raise it, on its 100 ms grid', () => {
-    const config = { ...deployed, overallTimeoutMs: 500, retryBudgetPct: 10 }
+    const config = { ...proposed, overallTimeoutMs: 500, retryBudgetPct: 10 }
     expect(proposeFixes(scenario, config)).toEqual([{ kind: 'edge', patch: { overallTimeoutMs: 800 } }])
   })
 
   it('both timeouts too low: one edge fix raises both', () => {
-    const config = { ...deployed, overallTimeoutMs: 500, retryBudgetPct: 10, perAttemptTimeoutMs: 400 }
+    const config = { ...proposed, overallTimeoutMs: 500, retryBudgetPct: 10, perAttemptTimeoutMs: 400 }
     expect(proposeFixes(scenario, config)).toEqual([
       { kind: 'edge', patch: { perAttemptTimeoutMs: 750, overallTimeoutMs: 800 } },
     ])
   })
 
   it('an edge fix can expose a deadline problem, which applying fixes then resolves', () => {
-    const config = { ...deployed, attempts: 2, perAttemptTimeoutMs: 400, retryBudgetPct: 10 }
+    const config = { ...proposed, attempts: 2, perAttemptTimeoutMs: 400, retryBudgetPct: 10 }
     expect(proposeFixes(scenario, config).map((fix) => fix.kind)).toEqual(['edge'])
     expect(applyFixes(scenario, config)).toEqual({ ...config, perAttemptTimeoutMs: 750, overallTimeoutMs: 900 })
   })

@@ -79,7 +79,7 @@ Dependencies and leaves:
 
 ### Expected results (use these as test cases)
 
-**A. As deployed: 2 of 7 fail**
+**A. As proposed: 2 of 7 fail**
 
 | Check | Value | Limit | Result |
 |---|---|---|---|
@@ -130,7 +130,8 @@ Principle: the verdict leads, the graph is the map, and detail appears only for 
    | Retry budget | Segmented buttons | None, 5%, 10%, 20%, 50% | |
 
    Switching the overall timeout on starts it at the current worst case, so the switch alone changes nothing (unless the worst case is above the 5,000 ms maximum, where it starts at the maximum). Fields are not validated against each other; judging a plausible but bad combination is the tool's job. When the overall timeout is below the per-attempt timeout, the panel says that attempts are capped by it.
-6. **Safe state.** The cards become tables of passing checks, including headroom per leaf.
+6. **Safe state.** The cards become tables of passing checks, one card per kind of check, in the same layout as the failure cards. Each has a title and a table only. Deadline and edge rows end with the margin to the limit; capacity rows end with headroom per leaf.
+7. **Changes and undo.** The tool is used before deployment, so the config it opens with is the one being proposed, not something already running. A field that differs from that starting value says what it was changed from, in green, in both states. The panel counts the changed values and offers to undo the changes.
 
 Recommendations:
 

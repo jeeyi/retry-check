@@ -30,7 +30,7 @@ export interface Leaf {
 export interface Scenario {
   name: string
   service: string
-  deployed: Config
+  proposed: Config
   clients: Client[]
   dependencies: Dependency[]
   leaves: Leaf[]

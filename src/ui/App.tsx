@@ -3,11 +3,12 @@ import { assess } from '../engine/assess'
 import { applyFixes, proposeFixes } from '../engine/fixes'
 import { looksReasonable as scenario } from '../scenarios/looksReasonable'
 import { ConfigPanel } from './ConfigPanel'
+import { PassingChecks } from './PassingChecks'
 import { VerdictBanner } from './VerdictBanner'
 import { WhyItFails } from './WhyItFails'
 
 export function App() {
-  const [config, setConfig] = useState(scenario.deployed)
+  const [config, setConfig] = useState(scenario.proposed)
   const assessment = assess(scenario, config)
   const fixes = proposeFixes(scenario, config)
 
@@ -28,11 +29,13 @@ export function App() {
         />
         <div className="columns">
           <div className="main-column">
-            {!assessment.safe && (
+            {assessment.safe ? (
+              <PassingChecks scenario={scenario} checks={assessment.checks} />
+            ) : (
               <WhyItFails scenario={scenario} config={config} assessment={assessment} fixes={fixes} />
             )}
           </div>
-          <ConfigPanel config={config} onChange={setConfig} />
+          <ConfigPanel config={config} proposed={scenario.proposed} onChange={setConfig} />
         </div>
       </main>
     </>

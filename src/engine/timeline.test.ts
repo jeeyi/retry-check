@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest'
 import { looksReasonable as scenario } from '../scenarios/looksReasonable'
 import { retrySpans } from './timeline'
 
-const deployed = scenario.deployed
+const proposed = scenario.proposed
 
 describe('retrySpans', () => {
   it('lays out attempts with doubling backoff between them', () => {
-    expect(retrySpans(deployed)).toEqual([
+    expect(retrySpans(proposed)).toEqual([
       { kind: 'attempt', attempt: 1, startMs: 0, endMs: 800 },
       { kind: 'backoff', attempt: 1, startMs: 800, endMs: 900 },
       { kind: 'attempt', attempt: 2, startMs: 900, endMs: 1700 },
@@ -16,21 +16,21 @@ describe('retrySpans', () => {
   })
 
   it('clips at the cutoff and drops what would start after it', () => {
-    expect(retrySpans(deployed, 1200)).toEqual([
+    expect(retrySpans(proposed, 1200)).toEqual([
       { kind: 'attempt', attempt: 1, startMs: 0, endMs: 800 },
       { kind: 'backoff', attempt: 1, startMs: 800, endMs: 900 },
       { kind: 'attempt', attempt: 2, startMs: 900, endMs: 1200 },
     ])
-    expect(retrySpans(deployed, 900).map((span) => span.kind)).toEqual(['attempt', 'backoff'])
+    expect(retrySpans(proposed, 900).map((span) => span.kind)).toEqual(['attempt', 'backoff'])
   })
 
   it('has no backoff spans when the base is zero or there is one attempt', () => {
-    expect(retrySpans({ ...deployed, backoffBaseMs: 0 }).map((span) => span.kind)).toEqual([
+    expect(retrySpans({ ...proposed, backoffBaseMs: 0 }).map((span) => span.kind)).toEqual([
       'attempt',
       'attempt',
       'attempt',
     ])
-    expect(retrySpans({ ...deployed, attempts: 1 })).toEqual([
+    expect(retrySpans({ ...proposed, attempts: 1 })).toEqual([
       { kind: 'attempt', attempt: 1, startMs: 0, endMs: 800 },
     ])
   })

@@ -3,7 +3,7 @@ import type { Scenario } from '../engine/types'
 export const looksReasonable: Scenario = {
   name: 'Looks reasonable',
   service: 'orders-api',
-  deployed: {
+  proposed: {
     attempts: 3,
     perAttemptTimeoutMs: 800,
     backoffBaseMs: 100,

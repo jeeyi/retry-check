@@ -4,6 +4,7 @@ import type { Fix } from '../engine/fixes'
 import { retrySpans, type Span } from '../engine/timeline'
 import type { Assessment, Check, Config, RetryPolicy, Scenario } from '../engine/types'
 import { formatMs, formatRps } from '../format'
+import { Card, CardSection } from './Cards'
 import { OverrunBar, type BarSpan } from './OverrunBar'
 
 interface Props {
@@ -28,30 +29,24 @@ const CARDS = { deadline: DeadlineCard, edge: EdgeCard, capacity: CapacityCard }
 /** One card per fix, not per failing check. */
 export function WhyItFails({ scenario, config, assessment, fixes }: Props) {
   return (
-    <section className="why">
-      <h2>Why it fails</h2>
-      <div className="cards">
-        {fixes.map((fix, index) => {
-          const failing = assessment.checks.filter((c) => c.kind === fix.kind && !c.pass)
-          const worst = failing.reduce((a, b) => (b.value / b.limit > a.value / a.limit ? b : a))
-          const Card = CARDS[fix.kind]
-          return (
-            <article key={fix.kind} className="panel card">
-              <div className="eyebrow">
-                Problem {index + 1} · {fix.kind}
-              </div>
-              <Card
-                scenario={scenario}
-                config={config}
-                fix={fix}
-                worst={worst}
-                others={failing.filter((c) => c !== worst)}
-              />
-            </article>
-          )
-        })}
-      </div>
-    </section>
+    <CardSection title="Why it fails">
+      {fixes.map((fix, index) => {
+        const failing = assessment.checks.filter((c) => c.kind === fix.kind && !c.pass)
+        const worst = failing.reduce((a, b) => (b.value / b.limit > a.value / a.limit ? b : a))
+        const Body = CARDS[fix.kind]
+        return (
+          <Card key={fix.kind} tone="fail" eyebrow={`Problem ${index + 1} · ${fix.kind}`}>
+            <Body
+              scenario={scenario}
+              config={config}
+              fix={fix}
+              worst={worst}
+              others={failing.filter((c) => c !== worst)}
+            />
+          </Card>
+        )
+      })}
+    </CardSection>
   )
 }
 

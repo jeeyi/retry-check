@@ -151,9 +151,13 @@ main {
 
 .checks th,
 .checks td {
-  padding: 10px 12px;
+  padding: 10px 8px;
   text-align: left;
   border-bottom: 1px solid var(--border);
+}
+
+.checks td {
+  white-space: nowrap;
 }
 
 .checks thead th {
@@ -198,6 +202,27 @@ main {
   color: var(--muted);
 }
 
+.hint.changed,
+.changes {
+  font-weight: 500;
+  color: var(--pass-text);
+}
+
+.changes {
+  font-size: 14px;
+}
+
+.reset {
+  padding: 0;
+  font: inherit;
+  font-size: 14px;
+  color: var(--text);
+  text-decoration: underline;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
 input[type='range'] {
   width: 100%;
   margin: 0;
@@ -240,7 +265,7 @@ input[type='range'] {
   border-color: var(--text);
 }
 
-.why {
+.card-section {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -254,6 +279,8 @@ input[type='range'] {
 
 .card {
   flex: 1 1 400px;
+  /* A table wider than a phone-width card scrolls inside the card, not the page. */
+  overflow-x: auto;
 }
 
 .card h3 {
@@ -271,7 +298,14 @@ input[type='range'] {
   font-size: 11px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+.eyebrow.fail {
   color: var(--fail-text);
+}
+
+.eyebrow.pass {
+  color: var(--pass-text);
 }
 
 .fix {

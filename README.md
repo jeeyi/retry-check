@@ -10,7 +10,7 @@ Live at https://retry-check.vercel.app/
 
 ## Status
 
-Built so far: the analysis engine, one demo scenario, and a page with the verdict, the editable retry config, and a card explaining each kind of failure with its fix. The request path graph and the safe-state view are not built yet.
+Built so far: the analysis engine, one demo scenario, and a page with the verdict, the editable retry config, a card explaining each kind of failure with its fix, and tables of the passing checks once the config is safe. The request path graph is not built yet.
 
 ## Develop
 

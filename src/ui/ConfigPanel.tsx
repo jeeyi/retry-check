@@ -13,22 +13,42 @@ import { formatMs } from '../format'
 
 interface Props {
   config: Config
+  /** The config the user started from. Fields that differ from it are marked, and undo returns to it. */
+  proposed: Config
   onChange: (config: Config) => void
 }
 
-export function ConfigPanel({ config, onChange }: Props) {
+const formatOptionalMs = (ms: number | null) => (ms === null ? 'None' : formatMs(ms))
+const formatBudget = (pct: number | null) => (pct === null ? 'None' : `${pct}%`)
+
+export function ConfigPanel({ config, proposed, onChange }: Props) {
   const set = (patch: Partial<Config>) => onChange({ ...config, ...patch })
   const { attempts, perAttemptTimeoutMs, backoffBaseMs, overallTimeoutMs, retryBudgetPct } = config
   const capped = overallTimeoutMs !== null && overallTimeoutMs < perAttemptTimeoutMs
+
+  const changedCount = (Object.keys(proposed) as (keyof Config)[]).filter((key) => config[key] !== proposed[key]).length
+  /** The proposed value of a field, formatted, if the current value differs from it. */
+  function changedFrom<K extends keyof Config>(key: K, format: (value: Config[K]) => string) {
+    return config[key] === proposed[key] ? undefined : format(proposed[key])
+  }
 
   return (
     <aside className="panel config">
       <div>
         <h2>Your retry config</h2>
-        <p className="muted">Change a value and the verdict updates.</p>
+        {changedCount === 0 ? (
+          <p className="muted">Change a value and the verdict updates.</p>
+        ) : (
+          <p className="changes">
+            {changedCount === 1 ? '1 value changed' : `${changedCount} values changed`}.{' '}
+            <button type="button" className="reset" onClick={() => onChange(proposed)}>
+              Undo changes
+            </button>
+          </p>
+        )}
       </div>
 
-      <Field label="Attempts">
+      <Field label="Attempts" changedFrom={changedFrom('attempts', String)}>
         <Segmented
           label="Attempts"
           options={ATTEMPTS}
@@ -43,6 +63,7 @@ export function ConfigPanel({ config, onChange }: Props) {
         htmlFor="per-attempt"
         readout={formatMs(perAttemptTimeoutMs)}
         hint={capped ? `Capped at ${formatMs(overallTimeoutMs)} by the overall timeout` : undefined}
+        changedFrom={changedFrom('perAttemptTimeoutMs', formatMs)}
       >
         <Slider
           id="per-attempt"
@@ -57,6 +78,7 @@ export function ConfigPanel({ config, onChange }: Props) {
         htmlFor="backoff"
         readout={backoffBaseMs === 0 ? 'None' : `${formatMs(backoffBaseMs)}, doubling`}
         hint={backoffHint(config)}
+        changedFrom={changedFrom('backoffBaseMs', formatMs)}
       >
         <Slider
           id="backoff"
@@ -69,7 +91,8 @@ export function ConfigPanel({ config, onChange }: Props) {
       <Field
         label="Overall timeout"
         htmlFor="overall"
-        readout={overallTimeoutMs === null ? 'None' : formatMs(overallTimeoutMs)}
+        readout={formatOptionalMs(overallTimeoutMs)}
+        changedFrom={changedFrom('overallTimeoutMs', formatOptionalMs)}
       >
         <label className="switch">
           <input
@@ -91,12 +114,12 @@ export function ConfigPanel({ config, onChange }: Props) {
         )}
       </Field>
 
-      <Field label="Retry budget">
+      <Field label="Retry budget" changedFrom={changedFrom('retryBudgetPct', formatBudget)}>
         <Segmented
           label="Retry budget"
           options={RETRY_BUDGET_PCT}
           value={retryBudgetPct}
-          format={(pct) => (pct === null ? 'None' : `${pct}%`)}
+          format={formatBudget}
           onChange={(value) => set({ retryBudgetPct: value })}
         />
       </Field>
@@ -118,7 +141,14 @@ function backoffHint({ attempts, backoffBaseMs }: Config): string | undefined {
   return `Waits ${waits.join(', then ')}`
 }
 
-function Field(props: { label: string; htmlFor?: string; readout?: string; hint?: string; children: ReactNode }) {
+function Field(props: {
+  label: string
+  htmlFor?: string
+  readout?: string
+  hint?: string
+  changedFrom?: string
+  children: ReactNode
+}) {
   return (
     <div className="field">
       <div className="field-head">
@@ -127,6 +157,7 @@ function Field(props: { label: string; htmlFor?: string; readout?: string; hint?
       </div>
       {props.children}
       {props.hint && <div className="hint">{props.hint}</div>}
+      {props.changedFrom && <div className="hint changed">Changed from {props.changedFrom}</div>}
     </div>
   )
 }

@@ -1,13 +1,43 @@
 import type { ReactNode } from 'react'
+import type { CheckKind } from '../engine/types'
 
 // The card frame and layout shared by the failing state (WhyItFails) and the
-// safe state (PassingChecks). Change the layout here and in `.cards`.
+// safe state (PassingChecks): one card at a time, with a dot per card.
 
-export function CardSection({ title, children }: { title: string; children: ReactNode }) {
+/** The element the request path scrolls to when a node is clicked. */
+export const CARD_SECTION_ID = 'details'
+
+interface SectionProps {
+  title: string
+  /** The cards available, in order. */
+  kinds: CheckKind[]
+  /** The card being shown, passed as children. */
+  active: CheckKind
+  onSelect: (kind: CheckKind) => void
+  children: ReactNode
+}
+
+export function CardSection({ title, kinds, active, onSelect, children }: SectionProps) {
   return (
-    <section className="card-section">
-      <h2>{title}</h2>
-      <div className="cards">{children}</div>
+    <section className="card-section" id={CARD_SECTION_ID}>
+      <div className="card-section-head">
+        <h2>{title}</h2>
+        {kinds.length > 1 && (
+          <div className="dots" role="group" aria-label="Choose a card">
+            {kinds.map((kind) => (
+              <button
+                key={kind}
+                type="button"
+                className="dot"
+                aria-label={`${kind} card`}
+                aria-pressed={kind === active}
+                onClick={() => onSelect(kind)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+      {children}
     </section>
   )
 }

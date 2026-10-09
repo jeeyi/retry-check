@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { serviceWorstMs } from '../engine/assess'
-import type { Assessment, Config, Scenario } from '../engine/types'
+import type { Assessment, CheckKind, Config, Scenario } from '../engine/types'
 import { formatMs, formatRps } from '../format'
 import { buildRequestPath, COLUMNS, NODE_HEIGHT } from './requestPathModel'
 
@@ -8,6 +8,8 @@ interface Props {
   scenario: Scenario
   config: Config
   assessment: Assessment
+  /** Called with the kind of check a clicked node belongs to. */
+  onSelect: (kind: CheckKind) => void
 }
 
 type Column = keyof typeof COLUMNS
@@ -19,8 +21,10 @@ const LABELS: Record<Column, string> = {
   leaves: 'Leaf services',
 }
 
-export function RequestPath({ scenario, config, assessment }: Props) {
+export function RequestPath({ scenario, config, assessment, onSelect }: Props) {
   const path = buildRequestPath(scenario, assessment)
+  // A node opens its card if there is one: every kind has a card when safe, only failing checks do otherwise.
+  const open = (kind: CheckKind, failing: boolean) => (assessment.safe || failing ? () => onSelect(kind) : undefined)
 
   return (
     <section className="panel">
@@ -28,8 +32,8 @@ export function RequestPath({ scenario, config, assessment }: Props) {
         <h2>Request path</h2>
         <span className={assessment.safe ? 'muted' : 'path-legend'}>
           {assessment.safe
-            ? 'No failing checks on any path'
-            : 'Orange marks a failing check and the path that leads to it'}
+            ? 'No failing checks on any path. Click a node to see its checks.'
+            : 'Orange marks a failing check and the path to it. Click an orange node for details.'}
         </span>
       </div>
 
@@ -56,7 +60,13 @@ export function RequestPath({ scenario, config, assessment }: Props) {
           ))}
 
           {path.clients.map((client) => (
-            <Node key={client.name} column="clients" y={client.y} failing={client.failing}>
+            <Node
+              key={client.name}
+              column="clients"
+              y={client.y}
+              failing={client.failing}
+              onClick={open('deadline', client.failing)}
+            >
               <b>{client.name}</b>
               <span>
                 deadline {formatMs(client.deadlineMs)} · {formatRps(client.rps)}
@@ -74,7 +84,13 @@ export function RequestPath({ scenario, config, assessment }: Props) {
           </Node>
 
           {path.dependencies.map((dep) => (
-            <Node key={dep.name} column="dependencies" y={dep.y} failing={dep.failing}>
+            <Node
+              key={dep.name}
+              column="dependencies"
+              y={dep.y}
+              failing={dep.failing}
+              onClick={open('edge', dep.failing)}
+            >
               <b>{dep.name}</b>
               <span>
                 {dep.attempts} attempts × {formatMs(dep.perAttemptTimeoutMs)}
@@ -87,15 +103,21 @@ export function RequestPath({ scenario, config, assessment }: Props) {
             // The bar spans whichever is larger, so the capacity tick moves left when overloaded.
             const scale = Math.max(leaf.loadRps, leaf.capacityRps)
             return (
-              <Node key={leaf.name} column="leaves" y={leaf.y} failing={leaf.failing}>
+              <Node
+                key={leaf.name}
+                column="leaves"
+                y={leaf.y}
+                failing={leaf.failing}
+                onClick={open('capacity', leaf.failing)}
+              >
                 <b>{leaf.name}</b>
                 <span>
                   {leaf.loadRps.toLocaleString('en-US')} of {formatRps(leaf.capacityRps)}
                 </span>
-                <div className="load">
-                  <div className="load-fill" style={{ width: `${(leaf.loadRps / scale) * 100}%` }} />
-                  <div className="load-tick" style={{ left: `${(leaf.capacityRps / scale) * 100}%` }} />
-                </div>
+                <span className="load">
+                  <span className="load-fill" style={{ width: `${(leaf.loadRps / scale) * 100}%` }} />
+                  <span className="load-tick" style={{ left: `${(leaf.capacityRps / scale) * 100}%` }} />
+                </span>
               </Node>
             )
           })}
@@ -110,12 +132,18 @@ export function RequestPath({ scenario, config, assessment }: Props) {
   )
 }
 
-function Node(props: { column: Column; y: number; failing?: boolean; children: ReactNode }) {
+/** A box on the graph. With onClick it is a button that opens the node's card. */
+function Node(props: { column: Column; y: number; failing?: boolean; onClick?: () => void; children: ReactNode }) {
   const { left, width } = COLUMNS[props.column]
   const height = NODE_HEIGHT[props.column]
   const style: CSSProperties = { left: `${left}%`, width: `${width}%`, top: props.y - height / 2, height }
-  return (
-    <div className={`node ${props.column} ${props.failing ? 'fail' : ''}`} style={style}>
+  const className = `node ${props.column} ${props.failing ? 'fail' : ''}`
+  return props.onClick ? (
+    <button type="button" className={className} style={style} onClick={props.onClick}>
+      {props.children}
+    </button>
+  ) : (
+    <div className={className} style={style}>
       {props.children}
     </div>
   )

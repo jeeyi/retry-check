@@ -114,12 +114,12 @@ Principle: the verdict leads, the graph is the map, and detail appears only for 
 
 1. **Header.** Tool name, the service being assessed, and a demo scenario picker.
 2. **Verdict banner.** Pass or fail and the check count. When failing, one button applies every fix; there are no per-card buttons. One fix can expose another problem (a longer per-attempt timeout can overrun a client deadline), so the button repeats until the config is safe.
-3. **Request path graph.** Four columns: clients, your service, dependencies (read-only), leaf services. Each node shows two or three numbers. Everything is muted except your service (dark) and failing nodes and the paths to them (orange). Each leaf has a load bar with a capacity tick. A failing deadline marks the client and its link to your service. A failing edge marks the dependency and the link into it, and that dependency also shows its worst case. A failing capacity check marks the leaf and the links from your service through its dependency. The graph sits above the cards in both states and stretches to the width of its panel; on a phone it scrolls inside the panel.
+3. **Request path graph.** Four columns: clients, your service, dependencies (read-only), leaf services. Each node shows two or three numbers. Everything is muted except your service (dark) and failing nodes and the paths to them (orange). Each leaf has a load bar with a capacity tick. A failing deadline marks the client and its link to your service. A failing edge marks the dependency and the link into it, and that dependency also shows its worst case. A failing capacity check marks the leaf and the links from your service through its dependency. The graph sits above the cards in both states and stretches to the width of its panel; on a phone it scrolls inside the panel. Clicking a node shows its card: a client shows the deadline card, a dependency the edge card, a leaf the capacity card. When the config is failing, only failing nodes have a card and are clickable; when it is safe, every client, dependency and leaf is.
 4. **Why it fails.** One card per fix, not per failing check, so at most three. Each card has a one-sentence title with the numbers in it, a visual, a short explanation, and the recommended fix. A card features the check furthest over its limit and names the others.
    - Deadline and edge failures use the same timeline: attempts as segments, a marker where the caller gives up, and the work after the marker in orange.
    - Capacity failures show the multiplication chain (550 × 3 × 3 = 4,950) and a bar against capacity.
-   - All cards are shown at once, in the order deadline, edge, capacity. To be revisited when the whole UI is reviewed.
-5. **Config panel.** The five editable fields. Fields that cause a failure are flagged with the problem they cause. Any edit recomputes the verdict immediately. No field accepts typed input, so no value can be invalid and there are no error states:
+   - One card is shown at a time, in the order deadline, edge, capacity, with a dot per card to switch between them. A single card has no dots. Showing all three at once was too much, and wrapping them made the last card look like the biggest problem.
+5. **Config panel.** The five editable fields. Any edit recomputes the verdict immediately. No field accepts typed input, so no value can be invalid and there are no error states:
 
    | Field | Control | Range | Step |
    |---|---|---|---|
@@ -130,7 +130,7 @@ Principle: the verdict leads, the graph is the map, and detail appears only for 
    | Retry budget | Segmented buttons | None, 5%, 10%, 20%, 50% | |
 
    Switching the overall timeout on starts it at the current worst case, so the switch alone changes nothing (unless the worst case is above the 5,000 ms maximum, where it starts at the maximum). Fields are not validated against each other; judging a plausible but bad combination is the tool's job. When the overall timeout is below the per-attempt timeout, the panel says that attempts are capped by it.
-6. **Safe state.** The cards become tables of passing checks, one card per kind of check, in the same layout as the failure cards. Each has a title and a table only. Deadline and edge rows end with the margin to the limit; capacity rows end with headroom per leaf.
+6. **Safe state.** The cards become tables of passing checks, one card per kind of check, shown one at a time with the same dots as the failure cards. Each has a title and a table only. Deadline and edge rows end with the margin to the limit; capacity rows end with headroom per leaf.
 7. **Changes and undo.** The tool is used before deployment, so the config it opens with is the one being proposed, not something already running. A field that differs from that starting value says what it was changed from, in green, in both states. The panel counts the changed values and offers to undo the changes.
 
 Recommendations:
@@ -149,7 +149,6 @@ Visual reference: mockup screens exported into `docs/mockups/` (failing state an
 
 - Show the safe range on the fields themselves: a floor on per-attempt timeout (slowest dependency, 750 ms) and a ceiling on overall timeout (shortest client deadline, 1.0 s).
 - Two more demo scenarios, "Deep chain" and "Shared database". Neither is designed yet.
-- List passing checks on the failing screen so the check count can be inspected. Built as a table in slice 1 and currently not rendered; to be decided when the whole UI is reviewed.
 
 ## Out of scope
 

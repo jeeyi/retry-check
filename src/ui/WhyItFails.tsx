@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { assess, rawWorstMs, retryMultiplierPct, totalClientRps } from '../engine/assess'
 import type { Fix } from '../engine/fixes'
 import { retrySpans, type Span } from '../engine/timeline'
-import type { Assessment, Check, Config, RetryPolicy, Scenario } from '../engine/types'
+import type { Assessment, Check, CheckKind, Config, RetryPolicy, Scenario } from '../engine/types'
 import { formatMs, formatRps } from '../format'
 import { Card, CardSection } from './Cards'
 import { OverrunBar, type BarSpan } from './OverrunBar'
@@ -12,6 +12,9 @@ interface Props {
   config: Config
   assessment: Assessment
   fixes: Fix[]
+  /** Which fix's card to show. Must be the kind of one of the fixes. */
+  active: CheckKind
+  onSelect: (kind: CheckKind) => void
 }
 
 interface CardProps {
@@ -26,26 +29,26 @@ interface CardProps {
 
 const CARDS = { deadline: DeadlineCard, edge: EdgeCard, capacity: CapacityCard }
 
-/** One card per fix, not per failing check. */
-export function WhyItFails({ scenario, config, assessment, fixes }: Props) {
+/** One card per fix, not per failing check. Only the active one is shown. */
+export function WhyItFails({ scenario, config, assessment, fixes, active, onSelect }: Props) {
+  const index = fixes.findIndex((fix) => fix.kind === active)
+  const fix = fixes[index]
+  const failing = assessment.checks.filter((c) => c.kind === fix.kind && !c.pass)
+  const worst = failing.reduce((a, b) => (b.value / b.limit > a.value / a.limit ? b : a))
+  const Body = CARDS[fix.kind]
+  const position = fixes.length > 1 ? `${index + 1} of ${fixes.length}` : `${index + 1}`
+
   return (
-    <CardSection title="Why it fails">
-      {fixes.map((fix, index) => {
-        const failing = assessment.checks.filter((c) => c.kind === fix.kind && !c.pass)
-        const worst = failing.reduce((a, b) => (b.value / b.limit > a.value / a.limit ? b : a))
-        const Body = CARDS[fix.kind]
-        return (
-          <Card key={fix.kind} tone="fail" eyebrow={`Problem ${index + 1} · ${fix.kind}`}>
-            <Body
-              scenario={scenario}
-              config={config}
-              fix={fix}
-              worst={worst}
-              others={failing.filter((c) => c !== worst)}
-            />
-          </Card>
-        )
-      })}
+    <CardSection title="Why it fails" kinds={fixes.map((f) => f.kind)} active={active} onSelect={onSelect}>
+      <Card tone="fail" eyebrow={`Problem ${position} · ${fix.kind}`}>
+        <Body
+          scenario={scenario}
+          config={config}
+          fix={fix}
+          worst={worst}
+          others={failing.filter((c) => c !== worst)}
+        />
+      </Card>
     </CardSection>
   )
 }

@@ -173,19 +173,6 @@ main {
   font-weight: 400;
 }
 
-.checks .result {
-  font-weight: 600;
-}
-
-.checks .pass .result {
-  color: var(--pass-text);
-}
-
-.checks .fail {
-  background: var(--fail-bg);
-  color: var(--fail-text);
-}
-
 .field {
   display: flex;
   flex-direction: column;
@@ -274,14 +261,43 @@ input[type='range'] {
   gap: 12px;
 }
 
-.cards {
+.card-section-head {
   display: flex;
-  flex-wrap: wrap;
-  gap: 24px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 28px;
+}
+
+.dots {
+  display: flex;
+}
+
+/* A 28px target around a 10px dot. */
+.dot {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.dot::before {
+  content: '';
+  display: block;
+  width: 10px;
+  height: 10px;
+  margin: auto;
+  border-radius: 50%;
+  background: var(--border-strong);
+}
+
+.dot[aria-pressed='true']::before {
+  background: var(--text);
 }
 
 .card {
-  flex: 1 1 400px;
   /* A table wider than a phone-width card scrolls inside the card, not the page. */
   overflow-x: auto;
 }
@@ -485,6 +501,8 @@ input[type='range'] {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  /* Explicit because a button's default would shrink the load bar to nothing. */
+  align-items: stretch;
   padding: 8px 12px;
   font-size: 13px;
   line-height: 18px;
@@ -527,7 +545,18 @@ input[type='range'] {
   color: var(--fail-text);
 }
 
+button.node {
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+button.node:hover {
+  box-shadow: 0 0 0 3px var(--border);
+}
+
 .load {
+  display: block;
   position: relative;
   height: 8px;
   margin: 8px 0 4px;
@@ -536,6 +565,7 @@ input[type='range'] {
 }
 
 .load-fill {
+  display: block;
   height: 100%;
   border-radius: 4px;
   background: var(--pass);
